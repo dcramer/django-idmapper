@@ -93,13 +93,20 @@ class SingletonModel(Model):
         super(SingletonModel, self).save(*args, **kwargs)
         self.__class__.cache_instance(self)
 
-    def delete(self, *args, **kwargs):
-        super(SingletonModel, self).delete(*args, **kwargs)
-        self.__class__.flush_cached_instance(self)
-    
     # TODO: This needs moved to the prepare stage (I believe?)
     objects = SingletonManager()
 
 from django.core.signals import pre_delete
+
+# Use a signal so we make sure to catch cascades.
 def flush_singleton_cache(sender, instance, **kwargs):
-    instance.__class__.flush_singleton_cache()
+    # XXX: Is this the best way to make sure we can flush?
+    if isinstance(instance.__class__, SingletonModel):
+        instance.__class__.flush_cached_instance(instance)
+pre_delete.connect(flush_singleton_cache)
+
+# XXX: It's to be determined if we should use this or not.
+# def update_singleton_cache(sender, instance, **kwargs):
+#     if isinstance(instance.__class__, SingletonModel):
+#          instance.__class__.cache_instance(instance)
+# post_save.connect(flush_singleton_cache)
