@@ -97,6 +97,7 @@ class SingletonModel(Model):
         super(SingletonModel, self).delete(*args, **kwargs)
         self.__class__.flush_cached_instance(self)
     
+    # TODO: This needs moved to the prepare stage (I believe?)
     objects = SingletonManager()
 
 from django.core.signals import pre_delete
