@@ -2,15 +2,24 @@ from weakref import WeakValueDictionary
 
 from django.db.models.base import Model, ModelBase
 
+from manager import SingletonManager
+
 class SingletonModelBase(ModelBase):
+    def __new__(cls, name, bases, attrs):
+        super_new = super(ModelBase, cls).__new__
+        parents = [b for b in bases if isinstance(b, SingletonModelBase)]
+        if not parents:
+            # If this isn't a subclass of Model, don't do anything special.
+            return super_new(cls, name, bases, attrs)
+
+        return super(SingletonModelBase, cls).__new__(cls, name, bases, attrs)
+
     def __call__(cls, *args, **kwargs):
         """
         this method will either create an instance (by calling the default implementation)
         or try to retrieve one from the class-wide cache by infering the pk value from 
         args and kwargs. If instance caching is enabled for this class, the cache is 
-        populated whenever possible (ie when it is possible to infer the pk value). If 'meta__disable_caching'
-        is set to True in kwargs, then the instance is constructed and we flush 
-        the associated cache entry. 
+        populated whenever possible (ie when it is possible to infer the pk value).
         """
         def new_instance():
             return super(SingletonModelBase, cls).__call__(*args, **kwargs)
@@ -27,12 +36,16 @@ class SingletonModelBase(ModelBase):
 
         return cached_instance
 
-class SingletonModel(Model):
-    __metaclass__ = SingletonModelBase
-
-    def __init_(self, *args, **kwargs):
+    def _prepare(cls):
         cls.__instance_cache__ = WeakValueDictionary()
-        super(SingletonModel, self).__init__(*args, **kwargs)
+        super(SingletonModelBase, cls)._prepare()
+        
+        
+
+class SingletonModel(Model):
+    # XXX: this is creating a model and it shouldn't be.. how do we properly
+    # subclass now?
+    __metaclass__ = SingletonModelBase
 
     def _get_cache_key(cls, args, kwargs):
         """
@@ -40,11 +53,15 @@ class SingletonModel(Model):
         It is used to decide if an instance has to be built or is already in the cache. 
         """
         result = None
-        pk = cls._meta.pk
+        # Quick hack for my composites work for now.
+        if hasattr(cls._meta, 'pks'):
+            pk = cls._meta.pks[0]
+        else:
+            pk = cls._meta.pk
         # get the index of the pk in the class fields. this should be calculated *once*, but isn't atm
-        pk_position = cls._meta.fields.index(pk)
-        if len(args) > pk_position:
-            # if it's in the args, we can get it easily by index
+        pk_position = cls._meta.fields.index(pk) 
+        if len(args) > pk_position: 
+            # if it's in the args, we can get it easily by index 
             result = args[pk_position]
         elif pk.attname in kwargs:
             # retrieve the pk value. Note that we use attname instead of name, to handle the case where the pk is a 
@@ -96,7 +113,7 @@ class SingletonModel(Model):
     # TODO: This needs moved to the prepare stage (I believe?)
     objects = SingletonManager()
 
-from django.core.signals import pre_delete
+from django.db.models.signals import pre_delete
 
 # Use a signal so we make sure to catch cascades.
 def flush_singleton_cache(sender, instance, **kwargs):
