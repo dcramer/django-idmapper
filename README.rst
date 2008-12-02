@@ -1,7 +1,7 @@
 Django Singletons
 =================
 
-Please note, the code is a proof of concept, and should be considered as only lightly tested.
+Please note, the code is a proof of concept, and should be considered as only lightly tested. Currently, it does not follow a true singleton model (one instance of a class), but rather an identity mapping solution.
 
 A brief overview of the design implementation can be found on the Django project Trac: http://code.djangoproject.com/ticket/17
 
