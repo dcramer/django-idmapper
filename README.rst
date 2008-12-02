@@ -10,14 +10,16 @@ Usage
 -----
 To use the singleton model you simply need to inherit from it (instead of models.Model). This enable all queries (and relational queries) to this model to use the singleton instance cache, effectively creating a single instance for each unique row (based on primary key) in the queryset.
 
-For example, if you want to simply mark all of your models as a SingletonModel, you might as well just import it as models::
+For example, if you want to simply mark all of your models as a SingletonModel, you might as well just import it as models.
+::
 
 	import singletons as models
 
 	class MyModel(models.SingletonModel):
 	    name = models.CharField(...)
 
-Because the system is isolated, you may mix and match SingletonModel's with regular Model's::
+Because the system is isolated, you may mix and match SingletonModel's with regular Model's.
+::
 
 import singletons as models
 
