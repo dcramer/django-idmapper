@@ -24,8 +24,8 @@ Because the system is isolated, you may mix and match SingletonModel's with regu
 	import singletons as models
 
 	class MyModel(models.SingletonModel):
-		name = models.CharField(...)
-		fkey = models.ForeignKey('Other')
+	    name = models.CharField(...)
+	    fkey = models.ForeignKey('Other')
 
 	class Other(models.Model):
-		name = models.CharField(...)
+	    name = models.CharField(...)
