@@ -21,11 +21,11 @@ For example, if you want to simply mark all of your models as a SingletonModel, 
 Because the system is isolated, you may mix and match SingletonModel's with regular Model's.
 ::
 
-import singletons as models
+	import singletons as models
 
-class MyModel(models.SingletonModel):
-    name = models.CharField(...)
-	fkey = models.ForeignKey('Other')
+	class MyModel(models.SingletonModel):
+    	name = models.CharField(...)
+		fkey = models.ForeignKey('Other')
 
-class Other(models.Model):
-	name = models.CharField(...)
+	class Other(models.Model):
+		name = models.CharField(...)
