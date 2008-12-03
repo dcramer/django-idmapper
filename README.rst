@@ -1,5 +1,5 @@
 Django Identity Mapper
-=================
+======================
 
 Please note, the code is a proof of concept, and should be considered as only lightly tested.
 
