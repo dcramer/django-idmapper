@@ -2,17 +2,17 @@ from weakref import WeakValueDictionary
 
 from django.db.models.base import Model, ModelBase
 
-from manager import SingletonManager
+from manager import SharedMemoryManager
 
-class SingletonModelBase(ModelBase):
+class SharedMemoryModelBase(ModelBase):
     def __new__(cls, name, bases, attrs):
         super_new = super(ModelBase, cls).__new__
-        parents = [b for b in bases if isinstance(b, SingletonModelBase)]
+        parents = [b for b in bases if isinstance(b, SharedMemoryModelBase)]
         if not parents:
             # If this isn't a subclass of Model, don't do anything special.
             return super_new(cls, name, bases, attrs)
 
-        return super(SingletonModelBase, cls).__new__(cls, name, bases, attrs)
+        return super(SharedMemoryModelBase, cls).__new__(cls, name, bases, attrs)
 
     def __call__(cls, *args, **kwargs):
         """
@@ -22,7 +22,7 @@ class SingletonModelBase(ModelBase):
         populated whenever possible (ie when it is possible to infer the pk value).
         """
         def new_instance():
-            return super(SingletonModelBase, cls).__call__(*args, **kwargs)
+            return super(SharedMemoryModelBase, cls).__call__(*args, **kwargs)
         
         instance_key = cls._get_cache_key(args, kwargs)
         # depending on the arguments, we might not be able to infer the PK, so in that case we create a new instance
@@ -38,14 +38,14 @@ class SingletonModelBase(ModelBase):
 
     def _prepare(cls):
         cls.__instance_cache__ = WeakValueDictionary()
-        super(SingletonModelBase, cls)._prepare()
+        super(SharedMemoryModelBase, cls)._prepare()
         
         
 
-class SingletonModel(Model):
+class SharedMemoryModel(Model):
     # XXX: this is creating a model and it shouldn't be.. how do we properly
     # subclass now?
-    __metaclass__ = SingletonModelBase
+    __metaclass__ = SharedMemoryModelBase
 
     def _get_cache_key(cls, args, kwargs):
         """
@@ -95,7 +95,7 @@ class SingletonModel(Model):
     cache_instance = classmethod(cache_instance)
 
     def _flush_cached_by_key(cls, key):
-        del cls.__instance_cache__.pop[key]
+        del cls.__instance_cache__[key]
     _flush_cached_by_key = classmethod(_flush_cached_by_key)
         
     def flush_cached_instance(cls, instance):
@@ -107,23 +107,23 @@ class SingletonModel(Model):
     flush_cached_instance = classmethod(flush_cached_instance)
     
     def save(self, *args, **kwargs):
-        super(SingletonModel, self).save(*args, **kwargs)
+        super(SharedMemoryModel, self).save(*args, **kwargs)
         self.__class__.cache_instance(self)
 
     # TODO: This needs moved to the prepare stage (I believe?)
-    objects = SingletonManager()
+    objects = SharedMemoryManager()
 
 from django.db.models.signals import pre_delete
 
 # Use a signal so we make sure to catch cascades.
 def flush_singleton_cache(sender, instance, **kwargs):
     # XXX: Is this the best way to make sure we can flush?
-    if isinstance(instance.__class__, SingletonModel):
+    if isinstance(instance, SharedMemoryModel):
         instance.__class__.flush_cached_instance(instance)
 pre_delete.connect(flush_singleton_cache)
 
 # XXX: It's to be determined if we should use this or not.
 # def update_singleton_cache(sender, instance, **kwargs):
-#     if isinstance(instance.__class__, SingletonModel):
+#     if isinstance(instance.__class__, SharedMemoryModel):
 #          instance.__class__.cache_instance(instance)
 # post_save.connect(flush_singleton_cache)
