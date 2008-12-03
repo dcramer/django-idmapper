@@ -1,10 +1,9 @@
 Django Identity Mapper
 ======================
 
-Please note, the code is a proof of concept, and should be considered as only lightly tested.
+A pluggable Django application which allows you to explicitally mark your models to use an identity mapping pattern. This will share instances of the same model in memory throughout your interpreter.
 
-A brief overview of the design implementation can be found on the Django project Trac: http://code.djangoproject.com/ticket/17
-
+Please note, that deserialization (such as from the cache) will *not* use the identity mapper.
 
 Usage
 -----
@@ -29,3 +28,8 @@ Because the system is isolated, you may mix and match SharedMemoryModel's with r
 
 	class Other(models.Model):
 	    name = models.CharField(...)
+
+References
+----------
+
+Original code and concept: http://code.djangoproject.com/ticket/17
