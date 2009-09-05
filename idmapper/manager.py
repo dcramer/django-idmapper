@@ -7,6 +7,9 @@ class SharedMemoryManager(Manager):
     # to be a SharedMemoryModel.
     def get(self, **kwargs):
         items = kwargs.keys()
-        if len(items) == 1 and items[0] in ('pk', self.model.pk.attname):
-            return self.get_cached_instance(kwargs[item[0]])
-        super(SharedMemoryManager, self).get(**kwargs)
+        inst = None
+        if len(items) == 1 and items[0] in ('pk', self.model._meta.pk.attname):
+            inst = self.model.get_cached_instance(kwargs[items[0]])
+        if inst is None:
+            inst = super(SharedMemoryManager, self).get(**kwargs)
+        return inst
