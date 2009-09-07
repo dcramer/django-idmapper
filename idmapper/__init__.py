@@ -1,4 +1,5 @@
 import os.path
+import warnings
 
 __all__ = ('__version__', '__build__')
 
@@ -27,7 +28,6 @@ def get_revision():
     return None
 
 __build__ = get_revision()
-
 
 def lazy_object(location):
     def inner(*args, **kwargs):
