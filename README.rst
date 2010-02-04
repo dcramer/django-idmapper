@@ -22,15 +22,15 @@ To use the shared memory model you simply need to inherit from it (instead of mo
 For example, if you want to simply mark all of your models as a SharedMemoryModel, you might as well just import it as models.
 ::
 
-	import idmapper as models
+	from idmapper import models
 
 	class MyModel(models.SharedMemoryModel):
 	    name = models.CharField(...)
 
-Because the system is isolated, you may mix and match SharedMemoryModel's with regular Model's.
+Because the system is isolated, you may mix and match SharedMemoryModels with regular Models. The module idmapper.models imports everything from django.db.models and only adds SharedMemoryModel, so you can simply replace your import of models from django.db.
 ::
 
-	import idmapper as models
+	from idmapper import models
 
 	class MyModel(models.SharedMemoryModel):
 	    name = models.CharField(...)
