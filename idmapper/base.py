@@ -5,14 +5,10 @@ from django.db.models.base import Model, ModelBase
 from manager import SharedMemoryManager
 
 class SharedMemoryModelBase(ModelBase):
-    def __new__(cls, name, bases, attrs):
-        super_new = super(ModelBase, cls).__new__
-        parents = [b for b in bases if isinstance(b, SharedMemoryModelBase)]
-        if not parents:
-            # If this isn't a subclass of Model, don't do anything special.
-            return super_new(cls, name, bases, attrs)
-
-        return super(SharedMemoryModelBase, cls).__new__(cls, name, bases, attrs)
+    # CL: upstream had a __new__ method that skipped ModelBase's __new__ if
+    # SharedMemoryModelBase was not in the model class's ancestors. It's not
+    # clear what was the intended purpose, but skipping ModelBase.__new__
+    # broke things; in particular, default manager inheritance.
 
     def __call__(cls, *args, **kwargs):
         """
@@ -43,9 +39,13 @@ class SharedMemoryModelBase(ModelBase):
         
 
 class SharedMemoryModel(Model):
-    # XXX: this is creating a model and it shouldn't be.. how do we properly
-    # subclass now?
+    # CL: setting abstract correctly to allow subclasses to inherit the default
+    # manager.
     __metaclass__ = SharedMemoryModelBase
+
+    objects = SharedMemoryManager()
+    class Meta:
+        abstract = True
 
     def _get_cache_key(cls, args, kwargs):
         """
@@ -109,9 +109,6 @@ class SharedMemoryModel(Model):
     def save(self, *args, **kwargs):
         super(SharedMemoryModel, self).save(*args, **kwargs)
         self.__class__.cache_instance(self)
-
-    # TODO: This needs moved to the prepare stage (I believe?)
-    objects = SharedMemoryManager()
 
 from django.db.models.signals import pre_delete
 

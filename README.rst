@@ -1,3 +1,13 @@
+This fork of django-idmapper fixes some bugs that prevented the idmapper from
+being used in many instances. In particular, the caching manager is now inherited
+by SharedMemoryManager subclasses, and it is used when Django uses an automatic
+manager (see http://docs.djangoproject.com/en/dev/topics/db/managers/#controlling-automatic-manager-types). This means access through foreign keys now uses
+identity mapping.
+
+Tested with Django version 1.2 alpha 1 SVN-12375.
+
+My modifications are usually accompanied by comments marked with "CL:".
+
 Django Identity Mapper
 ======================
 
