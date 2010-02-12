@@ -12,7 +12,7 @@ To use the shared memory model you simply need to inherit from it (instead of mo
 For example, if you want to simply mark all of your models as a SharedMemoryModel, you might as well just import it as models.
 ::
 
-	import idmapper as models
+	from idmapper as models
 
 	class MyModel(models.SharedMemoryModel):
 	    name = models.CharField(...)
@@ -20,7 +20,7 @@ For example, if you want to simply mark all of your models as a SharedMemoryMode
 Because the system is isolated, you may mix and match SharedMemoryModel's with regular Model's.
 ::
 
-	import idmapper as models
+	from idmapper as models
 
 	class MyModel(models.SharedMemoryModel):
 	    name = models.CharField(...)
